@@ -1,25 +1,31 @@
 {
   "format": 1,
   "restore": {
-    "/home/eloisazeferino/Documentos/projetos_senai_fullstack/projeto_pizzaria_delivery/PizzariaApi/PizzariaApi.csproj": {}
+    "E:\\DEV_FULLSTACK _QPR210001_eloisa\\projeto-pizzaria-delivery\\PizzariaApi\\PizzariaApi.csproj": {}
   },
   "projects": {
-    "/home/eloisazeferino/Documentos/projetos_senai_fullstack/projeto_pizzaria_delivery/PizzariaApi/PizzariaApi.csproj": {
+    "E:\\DEV_FULLSTACK _QPR210001_eloisa\\projeto-pizzaria-delivery\\PizzariaApi\\PizzariaApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/eloisazeferino/Documentos/projetos_senai_fullstack/projeto_pizzaria_delivery/PizzariaApi/PizzariaApi.csproj",
+        "projectUniqueName": "E:\\DEV_FULLSTACK _QPR210001_eloisa\\projeto-pizzaria-delivery\\PizzariaApi\\PizzariaApi.csproj",
         "projectName": "PizzariaApi",
-        "projectPath": "/home/eloisazeferino/Documentos/projetos_senai_fullstack/projeto_pizzaria_delivery/PizzariaApi/PizzariaApi.csproj",
-        "packagesPath": "/home/eloisazeferino/.nuget/packages/",
-        "outputPath": "/home/eloisazeferino/Documentos/projetos_senai_fullstack/projeto_pizzaria_delivery/PizzariaApi/obj/",
+        "projectPath": "E:\\DEV_FULLSTACK _QPR210001_eloisa\\projeto-pizzaria-delivery\\PizzariaApi\\PizzariaApi.csproj",
+        "packagesPath": "C:\\Users\\tarde.cetafaju\\.nuget\\packages\\",
+        "outputPath": "E:\\DEV_FULLSTACK _QPR210001_eloisa\\projeto-pizzaria-delivery\\PizzariaApi\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "/home/eloisazeferino/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\tarde.cetafaju\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -32,6 +38,11 @@
           "warnAsError": [
             "NU1605"
           ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -66,7 +77,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/8.0.131/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.202/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
