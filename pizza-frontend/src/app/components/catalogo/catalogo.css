@@ -1,0 +1,74 @@
+.container {
+  max-width: 1000px;
+  margin: 30px auto;
+  padding: 0 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.titulo-pagina {
+  text-align: center;
+  color: #b71c1c;
+  font-size: 2.2rem;
+  margin-bottom: 30px;
+  font-weight: 700;
+}
+
+.grid-cardapio {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.card-pizza {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-pizza:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-pizza h3 {
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+  font-size: 1.25rem;
+}
+
+.descricao {
+  color: #666;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  flex-grow: 1;
+  margin-bottom: 16px;
+}
+
+.preco {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #2e7d32;
+  margin-bottom: 12px;
+}
+
+.btn-adicionar {
+  background-color: #d32f2f;
+  color: #ffffff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  width: 100%;
+}
+
+.btn-adicionar:hover {
+  background-color: #b71c1c;
+}
