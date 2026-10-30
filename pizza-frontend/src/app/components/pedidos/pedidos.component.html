@@ -1,0 +1,45 @@
+<div class="pedidos-container">
+  <section class="card-form">
+    <h2>📝 Fazer Novo Pedido</h2>
+    <div class="form-group">
+      <label>Nome do Cliente:</label>
+      <input type="text" [(ngModel)]="clienteNome" placeholder="Ex: Eloísa Zeferino" />
+    </div>
+
+    <div class="form-group">
+      <label>Escolha a Pizza / Item:</label>
+      <select [(ngModel)]="itemSelecionadoId">
+        <option [ngValue]="null">-- Selecione um item --</option>
+        <option *ngFor="let item of cardapio" [value]="item.idItem">
+          {{ item.nome }} - R$ {{ item.preco }}
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Observação:</label>
+      <input type="text" [(ngModel)]="observacao" placeholder="Ex: Sem cebola" />
+    </div>
+
+    <button (click)="finalizarPedido()" class="btn-salvar">Confirmar Pedido</button>
+  </section>
+
+  <section class="lista-pedidos">
+    <h2>📋 Pedidos Realizados</h2>
+
+    <div *ngIf="pedidos.length === 0" class="vazio">Nenhum pedido registrado ainda.</div>
+
+    <div *ngFor="let p of pedidos" class="card-pedido">
+      <div class="info-header">
+        <strong>Pedido #{{ p.idAtendimento }}</strong>
+        <span class="badge">{{ p.status }}</span>
+      </div>
+      <p><strong>Detalhes:</strong> {{ p.observacao }}</p>
+      <p><strong>Total:</strong> R$ {{ p.valorTotal }}</p>
+      
+      <button (click)="cancelarPedido(p.idAtendimento)" class="btn-cancelar">
+        Cancelar Pedido
+      </button>
+    </div>
+  </section>
+</div>
