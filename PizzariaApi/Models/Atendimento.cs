@@ -7,16 +7,16 @@ namespace PizzariaApi.Models;
 public class Atendimento
 {
     [Key]
-    [Column("id_atendimento")]
+    [Column("idatendimento")]
     public int IdAtendimento { get; set; }
 
-    [Column("data_hora")]
+    [Column("data_atendimento")]
     public DateTime DataHora { get; set; } = DateTime.Now;
 
-    [Column("valor_total")]
-    public decimal ValorTotal { get; set; }
+    [NotMapped]
+    public decimal ValorTotal => AtendimentoItens.Sum(item => item.PrecoUnitario * item.Quantidade);
 
-    [Column("status")]
+    [Column("status_atendimento")]
     public string Status { get; set; } = "Em Processamento";
 
     [Column("observacao")]

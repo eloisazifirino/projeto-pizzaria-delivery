@@ -1,5 +1,5 @@
 <div class="pedidos-container">
-  <section class="card-form">
+  <section class="card-form" *ngIf="!administrativo">
     <h2>📝 Fazer Novo Pedido</h2>
     <div class="form-group">
       <label>Nome do Cliente:</label>
@@ -10,7 +10,7 @@
       <label>Escolha a Pizza / Item:</label>
       <select [(ngModel)]="itemSelecionadoId">
         <option [ngValue]="null">-- Selecione um item --</option>
-        <option *ngFor="let item of cardapio" [value]="item.idItem">
+        <option *ngFor="let item of cardapio" [ngValue]="item.idItem">
           {{ item.nome }} - R$ {{ item.preco }}
         </option>
       </select>
@@ -24,7 +24,7 @@
     <button (click)="finalizarPedido()" class="btn-salvar">Confirmar Pedido</button>
   </section>
 
-  <section class="lista-pedidos">
+  <section class="lista-pedidos" *ngIf="administrativo">
     <h2>📋 Pedidos Realizados</h2>
 
     <div *ngIf="pedidos.length === 0" class="vazio">Nenhum pedido registrado ainda.</div>

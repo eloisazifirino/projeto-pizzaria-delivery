@@ -7,18 +7,18 @@ namespace PizzariaApi.Models;
 public class AtendimentoItem
 {
     [Key]
-    [Column("id_atendimento_item")]
+    [Column("idatendimentoitem")]
     public int IdAtendimentoItem { get; set; }
 
-    [Column("id_atendimento")]
+    [Column("idatendimento")]
     public int IdAtendimento { get; set; }
 
-    [Column("id_item")]
+    [Column("iditem")]
     public int IdItem { get; set; }
 
-    [Column("quantidade")]
+    [Column("quantidade_itens")]
     public int Quantidade { get; set; }
 
-    [Column("preco_unitario")]
+    [Column("valor_unitario")]
     public decimal PrecoUnitario { get; set; }
 }

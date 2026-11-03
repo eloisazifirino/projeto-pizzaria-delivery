@@ -11,8 +11,8 @@
       </div>
       <div>
         <p class="preco">R$ {{ item.preco }}</p>
-        <button (click)="adicionarAoCarrinho(item)" class="btn-adicionar">
-          Adicionar ao Pedido
+        <button routerLink="/loja/pedido" [queryParams]="{ item: item.idItem }" class="btn-adicionar">
+          Pedir este item
         </button>
       </div>
     </div>

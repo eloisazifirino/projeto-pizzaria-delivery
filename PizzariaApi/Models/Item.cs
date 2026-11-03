@@ -11,7 +11,7 @@ public class Item
     public int IdItem { get; set; }
 
     [Column("idcategoria")]
-    public int IdCategoria { get; set; }
+    public int? IdCategoria { get; set; }
 
     [Column("nome")]
     public string Nome { get; set; } = string.Empty;

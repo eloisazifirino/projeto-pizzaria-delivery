@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { ApiService } from '../../services/api';
 
 @Component({
   selector: 'app-catalogo',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './catalogo.html',
   styleUrls: ['./catalogo.css']
 })
@@ -16,12 +17,8 @@ export class CatalogoComponent implements OnInit {
 
   ngOnInit(): void {
     this.apiService.getItens().subscribe({
-      next: (data) => this.itens = data,
+      next: (data) => this.itens = data.filter(item => item.ativoProdutoServico === 'S'),
       error: (err) => console.error('Erro ao carregar menu:', err)
     });
-  }
-
-  adicionarAoCarrinho(item: any): void {
-    alert(`Item "${item.nome}" adicionado ao pedido!`);
   }
 }

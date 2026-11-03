@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../services/api';
 
 @Component({
@@ -18,33 +19,39 @@ export class PedidosComponent implements OnInit {
   itemSelecionadoId: number | null = null;
   observacao: string = '';
 
-  constructor(private apiService: ApiService) {}
+  readonly administrativo: boolean;
+
+  constructor(private apiService: ApiService, route: ActivatedRoute) {
+    this.administrativo = route.snapshot.data['administrativo'] === true;
+    this.itemSelecionadoId = Number(route.snapshot.queryParamMap.get('item')) || null;
+  }
 
   ngOnInit(): void {
     this.carregarDados();
   }
 
   carregarDados(): void {
-    this.apiService.getItens().subscribe(data => this.cardapio = data);
-    this.apiService.getPedidos().subscribe(data => this.pedidos = data);
+    if (this.administrativo) {
+      this.apiService.getPedidos().subscribe(data => this.pedidos = data);
+    } else {
+      this.apiService.getItens().subscribe(data => {
+        this.cardapio = data.filter(item => item.ativoProdutoServico === 'S');
+      });
+    }
   }
 
   finalizarPedido(): void {
-    if (!this.clienteNome || !this.itemSelecionadoId) {
+    if (!this.clienteNome.trim() || !this.itemSelecionadoId) {
       alert('Por favor, informe o nome do cliente e selecione um item!');
       return;
     }
 
-    const itemObj = this.cardapio.find(i => i.idItem === Number(this.itemSelecionadoId));
-
     const novoPedido = {
       observacao: `Cliente: ${this.clienteNome}. Obs: ${this.observacao}`,
-      valorTotal: itemObj ? itemObj.preco : 0,
       atendimentoItens: [
         {
           idItem: Number(this.itemSelecionadoId),
-          quantidade: 1,
-          precoUnitario: itemObj ? itemObj.preco : 0
+          quantidade: 1
         }
       ]
     };
@@ -57,7 +64,10 @@ export class PedidosComponent implements OnInit {
         this.itemSelecionadoId = null;
         this.carregarDados();
       },
-      error: (err) => console.error('Erro ao salvar pedido:', err)
+      error: (err) => {
+        console.error('Erro ao salvar pedido:', err);
+        alert('Não foi possível confirmar o pedido. Verifique se a API e o banco estão disponíveis.');
+      }
     });
   }
 

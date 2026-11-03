@@ -1,0 +1,12 @@
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem;
+  background: #fff;
+}
+
+nav a {
+  color: #962d24;
+}
