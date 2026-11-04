@@ -1,0 +1,207 @@
+<div class="topo-loja">
+  <span class="eyebrow">CARDÁPIO DIGITAL</span>
+  @if (sessao) {
+    <div class="perfil-topo">
+      <button type="button" (click)="abrir('cadastro')" [disabled]="ocupado">
+        <span class="avatar" aria-hidden="true">{{ sessao.nome.charAt(0).toUpperCase() }}</span>
+        {{ sessao.nome }}
+      </button>
+      <button type="button" (click)="sair()" [disabled]="ocupado || !sessao.temSenha">Sair</button>
+    </div>
+  }
+</div>
+<header class="hero">
+  <span class="eyebrow">PIZZARIA DELIVERY</span>
+  <h1>Seu pedido começa aqui</h1>
+  <p>Escolha sua pizza, acrescente bebidas e acompanhamentos e acompanhe o preparo.</p>
+</header>
+<nav class="abas" aria-label="Loja virtual">
+  <button (click)="abrir('catalogo')" [class.selecionada]="aba === 'catalogo'" [disabled]="ocupado">Cardápio</button>
+  <button (click)="abrir('cadastro')" [class.selecionada]="aba === 'cadastro'" [disabled]="ocupado">Minha conta</button>
+  <button (click)="abrir('carrinho')" [class.selecionada]="aba === 'carrinho'" [disabled]="ocupado">Carrinho ({{ carrinho.length }})</button>
+  <button (click)="abrir('pedidos')" [class.selecionada]="aba === 'pedidos'" [disabled]="ocupado">Meus pedidos</button>
+</nav>
+<p role="status">{{ ocupado ? 'Aguarde…' : mensagem }}</p>
+
+@switch (aba) {
+  @case ('catalogo') {
+    <section>
+      <h2>Cardápio</h2>
+      <nav class="abas grupos" aria-label="Tipos de produto">
+        <button (click)="mudarGrupo('todos')" [class.selecionada]="grupo === 'todos'" [attr.aria-pressed]="grupo === 'todos'">Todos</button>
+        <button (click)="mudarGrupo('pizza')" [class.selecionada]="grupo === 'pizza'" [attr.aria-pressed]="grupo === 'pizza'">Pizzas</button>
+        <button (click)="mudarGrupo('bebidas')" [class.selecionada]="grupo === 'bebidas'" [attr.aria-pressed]="grupo === 'bebidas'">Bebidas</button>
+        <button (click)="mudarGrupo('outros')" [class.selecionada]="grupo === 'outros'" [attr.aria-pressed]="grupo === 'outros'">Outros produtos</button>
+      </nav>
+      <div class="campos">
+        <label>Pesquisar <input [(ngModel)]="nome" placeholder="Nome do item"></label>
+        <label>Categoria <select [(ngModel)]="categoria">
+          <option [ngValue]="null">Todas</option>
+          @for (c of categoriasDaAba; track c.id) { <option [ngValue]="c.id">{{ c.nome }}</option> }
+        </select></label>
+        <button (click)="atualizar()" [disabled]="ocupado">Atualizar</button>
+      </div>
+      <div class="grade grade-cardapio">
+        @for (item of filtrados; track item.idItem) {
+          <article class="card-cardapio">
+            <div class="icone-produto" aria-hidden="true">{{ ehPizza(item) ? '🍕' : item.tipoItem === 'S' ? '📋' : '🛍️' }}</div>
+            <h3>{{ item.nome }}</h3>
+            <p>{{ item.descricaoItem }}</p>
+            <p class="preco">{{ item.preco | currency:'BRL' }}</p>
+            <p>{{ item.tipoItem === 'P' ? 'Em estoque: ' + item.saldo : 'Serviço disponível' }}</p>
+            <ng-container *ngTemplateOutlet="seletorTamanho; context: { $implicit: item }"></ng-container>
+            <div class="acoes">
+              <button (click)="consultar(item.idItem)" [disabled]="ocupado">Ver detalhes</button>
+              <ng-container *ngTemplateOutlet="controleQuantidade; context: { $implicit: item }"></ng-container>
+            </div>
+          </article>
+        } @empty { <p>Nenhum item encontrado.</p> }
+      </div>
+    </section>
+  }
+  @case ('cadastro') {
+    <section>
+      <h2>Minha conta</h2>
+      @if (perfil; as dados) {
+        <form #edicao="ngForm" (ngSubmit)="edicao.valid && salvarPerfil()">
+          <label>Nome <input name="nome" [(ngModel)]="dados.nome" required maxlength="100"></label>
+          <label>CPF <input name="cpf" [(ngModel)]="dados.cpf" required pattern="[0-9]{11}"></label>
+          <label>E-mail <input name="email" type="email" [(ngModel)]="dados.email" required email maxlength="254"></label>
+          <label>Telefone <input name="telefone" [(ngModel)]="dados.telefone" pattern="[0-9]{10,11}"></label>
+          @if (edicao.invalid && edicao.touched) { <p>Confira o formato dos dados cadastrados.</p> }
+          <button class="primario" [disabled]="edicao.invalid || ocupado">Salvar dados</button>
+        </form>
+      }
+      @if (sessao && !sessao.temSenha) {
+        <p>Crie uma senha para acessar esta conta em outro navegador.</p>
+        <form #definir="ngForm" (ngSubmit)="definir.valid && definirSenha()">
+          <label>Nova senha <input name="senha" type="password" autocomplete="new-password" [(ngModel)]="novaSenha" required minlength="8" maxlength="128"></label>
+          <p>Use pelo menos 8 caracteres.</p>
+          <button [disabled]="definir.invalid || ocupado">Definir senha</button>
+        </form>
+      } @else if (!sessao) {
+        <nav class="abas" aria-label="Acesso à conta">
+          <button (click)="modoConta = 'entrar'" [class.selecionada]="modoConta === 'entrar'">Entrar</button>
+          <button (click)="modoConta = 'cadastrar'" [class.selecionada]="modoConta === 'cadastrar'">Criar conta</button>
+        </nav>
+        @if (modoConta === 'entrar') {
+          <form #login="ngForm" (ngSubmit)="login.valid && entrar()">
+            <label>E-mail <input name="email" type="email" autocomplete="username" [(ngModel)]="credenciais.email" required email maxlength="254"></label>
+            <label>Senha <input name="senha" type="password" autocomplete="current-password" [(ngModel)]="credenciais.senha" required maxlength="128"></label>
+            <button [disabled]="login.invalid || ocupado">Entrar</button>
+          </form>
+        } @else {
+          <form #form="ngForm" (ngSubmit)="form.valid && cadastrar()">
+            <label>Nome <input name="nome" [(ngModel)]="cadastro.nome" required maxlength="100"></label>
+            <label>CPF (11 dígitos) <input name="cpf" [(ngModel)]="cadastro.cpf" required pattern="[0-9]{11}"></label>
+            <label>E-mail <input name="email" [(ngModel)]="cadastro.email" type="email" autocomplete="username" required email maxlength="254"></label>
+            <label>Telefone (10 ou 11 dígitos) <input name="telefone" [(ngModel)]="cadastro.telefone" pattern="[0-9]{10,11}"></label>
+            <label>Senha (mínimo de 8 caracteres) <input name="senha" type="password" autocomplete="new-password" [(ngModel)]="cadastro.senha" required minlength="8" maxlength="128"></label>
+            @if (form.invalid && form.touched) { <p>Confira os campos obrigatórios e o formato dos dados.</p> }
+            <button [disabled]="form.invalid || ocupado">Criar conta</button>
+          </form>
+        }
+      }
+    </section>
+  }
+  @case ('carrinho') {
+    <section>
+      <h2>Carrinho</h2>
+      @for (linha of carrinho; track linha) {
+        <article>
+          <h3>{{ linha.item.nome }}</h3>
+          @if (linha.fatias) { <p>{{ nomeTamanho(linha.fatias) }}</p> }
+          <p>{{ linha.item.preco | currency:'BRL' }} por unidade</p>
+          <label>Quantidade <input type="number" min="1" [max]="limite(linha.item)" [(ngModel)]="linha.quantidade" [disabled]="ocupado"></label>
+          <button (click)="remover(linha)" [disabled]="ocupado">Remover</button>
+        </article>
+      } @empty { <p>Seu carrinho está vazio.</p> }
+      <label>Como você quer receber?
+        <select [(ngModel)]="modalidade" [disabled]="ocupado">
+          <option value="retirada">Retirada na pizzaria</option>
+          <option value="entrega">Entrega (+ R$ 5,00)</option>
+        </select>
+      </label>
+      <p>Subtotal: {{ subtotal | currency:'BRL' }}</p>
+      <p>Frete: {{ taxaEntrega | currency:'BRL' }}</p>
+      <p><strong>Total: {{ subtotal + taxaEntrega | currency:'BRL' }}</strong></p>
+      @if (carrinho.length && !carrinhoValido) { <p>Informe quantidades inteiras dentro do saldo disponível.</p> }
+      <label>Observação <textarea [(ngModel)]="observacao" maxlength="1000" [disabled]="ocupado"></textarea></label>
+      @if (sessao?.temSenha) {
+        <button class="primario" (click)="confirmar()" [disabled]="!carrinhoValido || ocupado">Confirmar pedido</button>
+      } @else { <button (click)="abrir('cadastro')" [disabled]="ocupado">Entrar ou criar conta para confirmar</button> }
+    </section>
+  }
+  @case ('pedidos') {
+    <section>
+      <h2>Meus pedidos</h2>
+      <label>Ordenar pedidos
+        <select [(ngModel)]="ordemPedidos">
+          <option value="recentes">Data: mais recentes primeiro</option>
+          <option value="antigos">Data: mais antigos primeiro</option>
+        </select>
+      </label>
+      <p>O status é atualizado automaticamente a cada 5 segundos.</p>
+      @if (erroSincronizacao) { <p role="status">{{ erroSincronizacao }}</p> }
+      @if (sessao) { <button (click)="abrir('pedidos')" [disabled]="ocupado">Atualizar status</button> }
+      @if (!sessao) { <p>Entre na sua conta para consultar seus pedidos.</p> }
+      @for (pedido of pedidosOrdenados; track pedido.idAtendimento) {
+        <details>
+          <summary>#{{ pedido.idAtendimento }} · {{ pedido.dataHora | date:'short' }} · <strong class="status-pedido">Status: {{ pedido.status }}</strong> · {{ pedido.valorTotal | currency:'BRL' }}</summary>
+          @if (pedido.modalidade) {
+            <p>{{ pedido.modalidade === 'entrega' ? 'Entrega' : 'Retirada' }} · Frete: {{ pedido.taxaEntrega | currency:'BRL' }}</p>
+          }
+          <ul>
+            @for (item of pedido.atendimentoItens; track $index) {
+              <li>{{ nomeItem(item.idItem) }} @if (item.fatias) { · {{ nomeTamanho(item.fatias) }} } · {{ item.quantidade }} × {{ item.precoUnitario | currency:'BRL' }}</li>
+            }
+          </ul>
+          @if (podeCancelar(pedido)) {
+            <button type="button" (click)="cancelarPedido(pedido)" [disabled]="ocupado">Cancelar pedido</button>
+          }
+        </details>
+      } @empty { @if (sessao) { <p>Nenhum pedido nesta sessão.</p> } }
+    </section>
+  }
+}
+
+
+<dialog #janelaDetalhes aria-labelledby="titulo-item">
+  @if (detalhe; as item) {
+    <div class="modal-cabecalho">
+      <span class="eyebrow">{{ item.tipoItem === 'S' ? 'SERVIÇO' : ehPizza(item) ? 'PIZZA' : 'PRODUTO' }}</span>
+      <button type="button" (click)="janelaDetalhes.close()" aria-label="Fechar detalhes">✕</button>
+    </div>
+    <h2 id="titulo-item">{{ item.nome }}</h2>
+    <p class="descricao-detalhada">{{ item.detalhes || item.descricaoItem || 'Descrição indisponível.' }}</p>
+    <p class="preco">{{ item.preco | currency:'BRL' }}</p>
+    <p>{{ item.tipoItem === 'S' ? 'Serviço disponível' : item.saldo ? item.saldo + ' em estoque' : 'Indisponível no momento' }}</p>
+    <ng-container *ngTemplateOutlet="seletorTamanho; context: { $implicit: item }"></ng-container>
+    <ng-container *ngTemplateOutlet="controleQuantidade; context: { $implicit: item }"></ng-container>
+  }
+</dialog>
+
+
+<ng-template #seletorTamanho let-item>
+  @if (ehPizza(item)) {
+    <label>Tamanho
+      <select [(ngModel)]="tamanhosSelecionados[item.idItem]">
+        <option [ngValue]="undefined">Escolha o tamanho</option>
+        @for (tamanho of tamanhos; track tamanho.fatias) {
+          <option [ngValue]="tamanho.fatias">{{ tamanho.nome }}</option>
+        }
+      </select>
+    </label>
+  }
+</ng-template>
+
+
+<ng-template #controleQuantidade let-item>
+  <div class="controle-quantidade" role="group" [attr.aria-label]="'Quantidade de ' + item.nome">
+    <button type="button" (click)="diminuir(item)" [disabled]="ocupado || !linhaSelecionada(item)" [attr.aria-label]="'Diminuir quantidade de ' + item.nome">−</button>
+    <span aria-live="polite">{{ linhaSelecionada(item)?.quantidade ?? 0 }}</span>
+    <button type="button" class="primario" (click)="adicionar(item)"
+      [disabled]="ocupado || quantidadeNoCarrinho(item) >= limite(item) || (ehPizza(item) && !tamanhosSelecionados[item.idItem])"
+      [attr.aria-label]="'Aumentar quantidade de ' + item.nome">+</button>
+  </div>
+</ng-template>

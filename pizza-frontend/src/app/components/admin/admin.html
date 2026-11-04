@@ -1,0 +1,253 @@
+<header class="hero hero-admin">
+  <span class="eyebrow">GESTÃO DA PIZZARIA</span>
+  <h1>Painel administrativo</h1>
+  <p>Gerencie seu cardápio, acompanhe pedidos e controle as entradas de estoque.</p>
+</header>
+<p role="status">{{ ocupado ? 'Aguarde…' : mensagem }}</p>
+@if (!autorizado) {
+  <form #acesso="ngForm" (ngSubmit)="acesso.valid && entrar()">
+    <label>Chave administrativa <input name="chave" type="password" [(ngModel)]="chave" required></label>
+    <button [disabled]="acesso.invalid || ocupado">Acessar</button>
+  </form>
+} @else {
+  <nav class="abas" aria-label="Painel administrativo">
+    @for (opcao of abas; track opcao.id) {
+      <button (click)="abrir(opcao.id)" [class.selecionada]="aba === opcao.id" [disabled]="ocupado">{{ opcao.nome }}</button>
+    }
+    <button (click)="sair()" [disabled]="ocupado">Sair</button>
+  </nav>
+
+  @if (aba === 'clientes' || aba === 'produtos') {
+    <label class="busca-admin">Pesquisar por nome
+      <input [(ngModel)]="buscaNome" [placeholder]="aba === 'clientes' ? 'Ex.: Eloísa' : 'Ex.: calabresa'">
+    </label>
+  }
+  @if (aba !== 'resumo') {
+    <form #busca="ngForm" class="campos" (ngSubmit)="busca.valid && consultaId && consultar(consultaId)">
+      <label>Consultar por ID <input name="id" type="number" min="1" step="1" [(ngModel)]="consultaId" required></label>
+      <button [disabled]="busca.invalid || ocupado">Consultar</button>
+    </form>
+  }
+
+  @switch (aba) {
+    @case ('resumo') {
+      <section>
+        <h2>Resumo</h2>
+        <div class="grade">
+          <article>Clientes: {{ clientes.length }}</article>
+          <article>Produtos: {{ produtos.length }}</article>
+          <article>Pedidos: {{ pedidos.length }} ({{ emProcessamento }} em processamento)</article>
+          <article>Estoque: {{ saldoTotal }} unidades</article>
+        </div>
+      </section>
+    }
+    @case ('produtos') {
+      <section>
+        <h2>Produtos e estoque</h2>
+        <button (click)="atualizar()" [disabled]="ocupado">Atualizar saldos</button>
+        <form #mov="ngForm" (ngSubmit)="mov.valid ? registrarMovimento() : mov.control.markAllAsTouched()">
+          <h3>Movimentar estoque</h3>
+          <label>Operação <select id="operacao-estoque" name="operacao" [(ngModel)]="operacao">
+            <option value="entrada">Dar entrada</option><option value="saida">Retirar unidades</option>
+          </select></label>
+          <label>Produto <select name="produto" [(ngModel)]="movimento.idItem" [required]="operacao === 'saida'">
+            <option [ngValue]="null">{{ operacao === 'entrada' ? 'Informar nome do produto' : 'Selecione' }}</option>
+            @for (p of produtos; track p.idItem) { <option [ngValue]="p.idItem">{{ p.nome }} · {{ p.saldo }} un.</option> }
+          </select></label>
+          @if (produtoSelecionado; as p) { <p>Saldo atual: <strong>{{ p.saldo }} un.</strong></p> }
+          @if (operacao === 'entrada' && !movimento.idItem) {
+            <label>Nome do produto <input name="nomeProduto" [(ngModel)]="movimento.nome" required maxlength="100"></label>
+            @if (produtoComMesmoNome; as p) {
+              <p>{{ p.nome }} já está cadastrado. A entrada soma ao saldo atual de {{ p.saldo }} un.</p>
+            } @else {
+              <p>Se for um produto novo, ele será cadastrado junto com a entrada.</p>
+              <label>Preço de venda <input name="precoVenda" inputmode="decimal" [(ngModel)]="movimento.preco" [pattern]="formatoValor" required placeholder="Ex.: 25,90"></label>
+              <label>Aba do cardápio <select name="grupo" [(ngModel)]="movimento.grupoCardapio" (ngModelChange)="movimento.idCategoria = null">
+                <option value="outros">Outros produtos</option><option value="pizza">Pizzas</option><option value="bebidas">Bebidas</option>
+              </select></label>
+              <label>Categoria <select name="categoria" [(ngModel)]="movimento.idCategoria">
+                <option [ngValue]="null">Sem categoria</option>
+                @for (c of categoriasDoGrupo(movimento.grupoCardapio); track c.id) { <option [ngValue]="c.id">{{ c.nome }}</option> }
+              </select></label>
+              <label>Descrição curta <input name="descricao" [(ngModel)]="movimento.descricaoItem" maxlength="200"></label>
+              <label>Descrição detalhada <textarea name="detalhes" [(ngModel)]="movimento.detalhes" maxlength="2000" rows="4"></textarea></label>
+            }
+          }
+          <label>Data <input name="data" type="date" [(ngModel)]="movimento.data" required></label>
+          <label>Quantidade <input name="quantidade" type="number" min="1" max="1000000" step="1" [(ngModel)]="movimento.quantidade" required></label>
+          @if (operacao === 'entrada' && (produtoSelecionado || produtoComMesmoNome); as existente) {
+            <p>Valor unitário cadastrado: <strong>{{ existente.preco | currency:'BRL' }}</strong></p>
+          } @else if (operacao === 'entrada') {
+            <label>Valor unitário de entrada <input name="valor" inputmode="decimal" [(ngModel)]="movimento.valorUnitario" [pattern]="formatoValor" required placeholder="Ex.: 12,50"></label>
+          }
+          @if (mov.invalid && (mov.submitted || mov.touched)) {
+            <ul role="alert">
+              @if (mov.controls['produto']?.invalid) { <li>Selecione um produto.</li> }
+              @if (mov.controls['nomeProduto']?.invalid) { <li>Informe o nome do produto.</li> }
+              @if (mov.controls['data']?.invalid) { <li>Informe a data da movimentação.</li> }
+              @if (mov.controls['quantidade']?.invalid) { <li>Informe uma quantidade entre 1 e 1.000.000.</li> }
+              @if (mov.controls['precoVenda']?.invalid) { <li>Informe o preço de venda, por exemplo 25,90.</li> }
+              @if (mov.controls['valor']?.invalid) { <li>Informe o valor de entrada, por exemplo 12,50.</li> }
+            </ul>
+          }
+          <button class="primario" [disabled]="ocupado">{{ operacao === 'entrada' ? 'Registrar entrada' : 'Registrar retirada' }}</button>
+        </form>
+      </section>
+      <ng-container *ngTemplateOutlet="itensForm"></ng-container>
+      <details>
+        <summary>Gerenciar categorias</summary>
+        <form #buscaCategoria="ngForm" (ngSubmit)="buscaCategoria.valid && consultaCategoriaId && editarCategoria(consultaCategoriaId)">
+          <label>Consultar categoria por ID
+            <input name="idCategoria" type="number" min="1" step="1" [(ngModel)]="consultaCategoriaId" required>
+          </label>
+          <button [disabled]="buscaCategoria.invalid || ocupado">Consultar categoria</button>
+        </form>
+        <form #cat="ngForm" (ngSubmit)="cat.valid && salvarCategoria()">
+          <label>Aba da categoria <select name="grupoCategoria" [(ngModel)]="categoria.grupoCardapio">
+            <option value="pizza">Pizzas</option><option value="bebidas">Bebidas</option>
+            <option value="outros">Outros produtos</option>
+          </select></label>
+          <label>Nome <input name="nome" [(ngModel)]="categoria.nome" required maxlength="45"></label>
+          <button [disabled]="cat.invalid || ocupado">{{ categoria.id ? 'Salvar alteração' : 'Cadastrar categoria' }}</button>
+          <button type="button" (click)="limparCategoria()">Limpar</button>
+        </form>
+        @for (c of categorias; track c.id) {
+          <article>{{ nomeGrupo(c.grupoCardapio) }} · {{ c.nome }}
+            <button (click)="editarCategoria(c.id)" [disabled]="ocupado">Editar</button>
+            <button (click)="excluir('/categorias', c.id)" [disabled]="ocupado">Excluir</button>
+          </article>
+        } @empty { <p>Nenhuma categoria cadastrada.</p> }
+      </details>
+      <details>
+        <summary>Histórico de movimentações manuais</summary>
+        @for (e of entradas; track e.id) {
+          <article>{{ e.data | date:'shortDate':'UTC' }} · {{ nomeItem(e.idItem) }} ·
+            @if (e.quantidade < 0) { Retirada de {{ -e.quantidade }} un. }
+            @else { Entrada de {{ e.quantidade }} un. × {{ e.valorUnitario | currency:'BRL' }} }
+          </article>
+        } @empty { <p>Nenhuma movimentação registrada.</p> }
+      </details>
+    }
+    @case ('clientes') {
+      <section>
+        <h2>Clientes</h2>
+        @if (cliente) {
+          <article><h3>{{ cliente.nome }}</h3>
+            <p>CPF: {{ cliente.cpf }} · E-mail: {{ cliente.email }} · Telefone: {{ cliente.telefone }}</p>
+          </article>
+        }
+        @for (c of clientesFiltrados; track c.id) {
+          <article>{{ c.nome }} <button (click)="consultar(c.id)" [disabled]="ocupado">Detalhes</button></article>
+        } @empty { <p>Nenhum cliente cadastrado.</p> }
+      </section>
+    }
+    @case ('pedidos') {
+      <section>
+        <h2>Pedidos</h2>
+        <p>Atualização automática a cada 5 segundos.</p>
+        @if (erroSincronizacao) { <p role="status">{{ erroSincronizacao }}</p> }
+        <nav class="abas" aria-label="Filtrar pedidos por status">
+          <button (click)="filtrarPedidos('')" [class.selecionada]="!filtroStatus" [disabled]="ocupado">Todos</button>
+          @for (status of situacoes; track status) {
+            <button (click)="filtrarPedidos(status)" [class.selecionada]="filtroStatus === status"
+              [attr.aria-pressed]="filtroStatus === status" [disabled]="ocupado">{{ status }}</button>
+          }
+        </nav>
+        <label>Ordenar por data de criação
+          <select [(ngModel)]="ordemPedidos">
+            <option value="recentes">Mais recentes primeiro</option>
+            <option value="antigos">Mais antigos primeiro</option>
+          </select>
+        </label>
+        @if (pedido; as p) {
+          <article>
+            <h3>Pedido #{{ p.idAtendimento }}</h3>
+            <p>{{ nomeCliente(p.idPessoa) }} · {{ p.dataHora | date:'short' }} · {{ p.status }}</p>
+            <p>{{ p.observacao }}</p>
+            <ul>
+              @for (i of p.atendimentoItens; track $index) {
+                <li>{{ nomeItem(i.idItem) }} @if (i.fatias) { · {{ nomeTamanho(i.fatias) }} } · {{ i.quantidade }} × {{ i.precoUnitario | currency:'BRL' }}</li>
+              }
+            </ul>
+            @if (p.modalidade) {
+              <p>{{ p.modalidade === 'entrega' ? 'Entrega' : 'Retirada' }} · Frete: {{ p.taxaEntrega | currency:'BRL' }}</p>
+            }
+            <p>Total: {{ p.valorTotal | currency:'BRL' }}</p>
+            @if (opcoesStatus(p).length) {
+              <label>Status do pedido <select [(ngModel)]="novoStatus">
+                <option value="">Selecione</option>
+                @for (s of opcoesStatus(p); track s) { <option [value]="s">{{ s }}</option> }
+              </select></label>
+              <button (click)="atualizarStatus()" [disabled]="ocupado || !novoStatus">Salvar status</button>
+            }
+          </article>
+        }
+        @for (p of pedidosOrdenados; track p.idAtendimento) {
+          <article>#{{ p.idAtendimento }} · {{ nomeCliente(p.idPessoa) }} · {{ p.status }} · {{ p.valorTotal | currency:'BRL' }}
+            @if (opcoesStatus(p).length) {
+              <label>Alterar status
+                <select [(ngModel)]="statusNaLista[p.idAtendimento]" [disabled]="ocupado">
+                  <option [ngValue]="undefined">Selecione a próxima etapa</option>
+                  @for (status of opcoesStatus(p); track status) {
+                    <option [value]="status">{{ status }}</option>
+                  }
+                </select>
+              </label>
+              <button (click)="atualizarStatus(p, statusNaLista[p.idAtendimento])"
+                [disabled]="ocupado || !statusNaLista[p.idAtendimento]">Salvar status</button>
+            }
+            <button (click)="consultar(p.idAtendimento)" [disabled]="ocupado">Ver detalhes</button>
+          </article>
+        } @empty { <p>Nenhum pedido encontrado.</p> }
+      </section>
+    }
+  }
+}
+
+<ng-template #itensForm>
+  <section>
+    <h2>Produtos</h2>
+    @if (item.idItem) {
+      <form #form="ngForm" (ngSubmit)="form.valid && salvarItem()">
+        <label>Nome <input name="nome" [(ngModel)]="item.nome" required maxlength="100"></label>
+        @if (tipo === 'P') {
+          <label>Aba do cardápio <select name="grupo" [(ngModel)]="item.grupoCardapio" (ngModelChange)="item.idCategoria = null">
+            <option value="pizza">Pizzas</option><option value="bebidas">Bebidas</option><option value="outros">Outros produtos</option>
+          </select></label>
+        }
+        <label>Descrição curta <textarea name="descricao" [(ngModel)]="item.descricaoItem" maxlength="200"></textarea></label>
+        <label>Descrição detalhada <textarea name="detalhes" [(ngModel)]="item.detalhes" maxlength="2000" rows="4" placeholder="Ingredientes, tamanho, porção ou informações de alérgenos"></textarea></label>
+        <label>Preço <input name="preco" inputmode="decimal" [(ngModel)]="item.preco" [pattern]="formatoValor" required placeholder="Ex.: 12,50"></label>
+        <label>Categoria <select name="categoria" [(ngModel)]="item.idCategoria">
+          <option [ngValue]="null">Sem categoria</option>
+          @for (c of categoriasDoGrupo(item.grupoCardapio); track c.id) { <option [ngValue]="c.id">{{ c.nome }}</option> }
+        </select></label>
+        @if (form.invalid && form.touched) { <p>Confira nome, descrição e preço.</p> }
+        <button [disabled]="form.invalid || ocupado">{{ item.idItem ? 'Salvar alteração' : 'Cadastrar' }}</button>
+        <button type="button" (click)="limparItem()">Limpar</button>
+      </form>
+    }
+    <label>Situação dos produtos
+      <select [(ngModel)]="filtroAtivo">
+        <option value="">Todos</option>
+        <option value="S">Ativos</option>
+        <option value="N">Desativados</option>
+      </select>
+    </label>
+    @for (i of itensFiltrados; track i.idItem) {
+      <article>{{ i.nome }} · {{ i.preco | currency:'BRL' }} · {{ i.ativoProdutoServico === 'S' ? 'Ativo' : 'Inativo' }}
+        @if (tipo === 'P') {
+          <p>{{ nomeCategoria(i.idCategoria) }} · <strong>{{ i.saldo }} un. em estoque</strong></p>
+          <button (click)="selecionarMovimento(i.idItem, 'entrada')" [disabled]="ocupado">Dar entrada</button>
+          <button (click)="selecionarMovimento(i.idItem, 'saida')" [disabled]="ocupado || !i.saldo">Retirar unidades</button>
+        }
+        <button (click)="consultar(i.idItem)" [disabled]="ocupado">Editar</button>
+        @if (i.ativoProdutoServico === 'S') {
+          <button (click)="excluir('/itens', i.idItem)" [disabled]="ocupado">Desativar</button>
+        } @else {
+          <button (click)="reativar(i.idItem)" [disabled]="ocupado">Reativar</button>
+        }
+      </article>
+    } @empty { <p>Nenhum registro encontrado.</p> }
+  </section>
+</ng-template>

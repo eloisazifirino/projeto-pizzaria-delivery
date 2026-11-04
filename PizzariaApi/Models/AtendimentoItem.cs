@@ -19,6 +19,8 @@ public class AtendimentoItem
     [Column("quantidade_itens")]
     public int Quantidade { get; set; }
 
+    public int? Fatias { get; set; }
+
     [Column("valor_unitario")]
     public decimal PrecoUnitario { get; set; }
 }

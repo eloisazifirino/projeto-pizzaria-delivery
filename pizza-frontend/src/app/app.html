@@ -1,8 +1,8 @@
-<nav aria-label="Navegação principal">
-  <a routerLink="/loja">Cardápio</a>
-  <a routerLink="/loja/pedido">Fazer pedido</a>
-  <a routerLink="/admin/pedidos">Painel administrativo</a>
+<nav class="navegacao" aria-label="Navegação principal">
+  <a class="marca" routerLink="/loja">🍕 Pizzaria Delivery</a>
+  <div class="links">
+    <a routerLink="/loja" routerLinkActive="ativo" ariaCurrentWhenActive="page">Loja virtual</a>
+    <a routerLink="/admin" routerLinkActive="ativo" ariaCurrentWhenActive="page">Painel administrativo</a>
+  </div>
 </nav>
-<main>
-  <router-outlet />
-</main>
+<main><router-outlet /></main>

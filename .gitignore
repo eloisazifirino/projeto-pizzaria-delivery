@@ -1,0 +1,16 @@
+# Dependências e arquivos gerados
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/.angular/
+**/coverage/
+**/out-tsc/
+*.log
+
+# Configurações locais de editores e sistema
+.vs/
+*.user
+*.suo
+.DS_Store
+Thumbs.db

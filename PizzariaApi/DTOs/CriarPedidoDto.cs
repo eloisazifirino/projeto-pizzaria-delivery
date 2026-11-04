@@ -3,9 +3,11 @@ using System.ComponentModel.DataAnnotations;
 namespace PizzariaApi.DTOs;
 
 public record CriarPedidoDto(
-    string? Observacao,
-    [Required, MinLength(1)] List<ItemPedidoDto> AtendimentoItens);
+    [StringLength(1000)] string? Observacao,
+    [Required, MinLength(1), MaxLength(100)] List<ItemPedidoDto> AtendimentoItens,
+    [Required, RegularExpression("^(entrega|retirada)$")] string Modalidade);
 
 public record ItemPedidoDto(
     [Range(1, int.MaxValue)] int IdItem,
-    [Range(1, int.MaxValue)] int Quantidade);
+    [Range(1, int.MaxValue)] int Quantidade,
+    int? Fatias = null);

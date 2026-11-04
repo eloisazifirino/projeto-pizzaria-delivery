@@ -13,6 +13,17 @@ public class Item
     [Column("idcategoria")]
     public int? IdCategoria { get; set; }
 
+    public int Saldo { get; set; }
+
+    [Column("grupo_cardapio")]
+    public string GrupoCardapio { get; set; } = "outros";
+
+    public string? Detalhes { get; set; }
+
+    [NotMapped]
+    public bool EhPizza => TipoItem == "P" && (GrupoCardapio == "pizza" ||
+        Nome.Trim().StartsWith("Pizza ", StringComparison.OrdinalIgnoreCase));
+
     [Column("nome")]
     public string Nome { get; set; } = string.Empty;
 

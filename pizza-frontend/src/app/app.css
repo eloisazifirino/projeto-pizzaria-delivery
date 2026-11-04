@@ -1,12 +1,21 @@
-
-nav {
+.navegacao {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 1rem;
-  padding: 1rem;
-  background: #fff;
+  gap: .75rem;
+  padding: .9rem max(1rem, calc((100vw - 72rem) / 2));
+  background: #2d1915;
 }
 
-nav a {
-  color: #962d24;
+.links { display: flex; flex-wrap: wrap; gap: .4rem; }
+
+.navegacao a {
+  padding: .5rem .75rem;
+  border-radius: .5rem;
+  color: #fff3e6;
+  text-decoration: none;
 }
+
+.navegacao a.ativo, .navegacao a:hover { background: #54302a; }
+.navegacao .marca { font-weight: 800; padding-inline: 0; }
